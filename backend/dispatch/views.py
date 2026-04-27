@@ -5,6 +5,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .demo_data import seed_demo_data
 from .models import Mechanic, ServiceRequest, Offer, ChatMessage
 from .serializers import MechanicSerializer, ServiceRequestSerializer, OfferSerializer, ChatMessageSerializer
 
@@ -22,8 +23,16 @@ class MechanicViewSet(viewsets.ModelViewSet):
     queryset = Mechanic.objects.all().order_by("name")
     serializer_class = MechanicSerializer
 
+    def list(self, request, *args, **kwargs):
+        if not Mechanic.objects.exists():
+            seed_demo_data()
+        return super().list(request, *args, **kwargs)
+
     @action(detail=False, methods=["get"])
     def nearby(self, request):
+        if not Mechanic.objects.exists():
+            seed_demo_data()
+
         lat = float(request.query_params.get("lat", 0))
         lng = float(request.query_params.get("lng", 0))
         radius = float(request.query_params.get("radius", 10))
